@@ -1,0 +1,229 @@
+#Import Modules
+IMPORT LIBARIES random, time, math
+
+#Define Menu
+FUNCTION menu()
+	choice <-- "NULL"
+	OUTPUT("""Main Menu
+			Please choose a difficulty level
+			Enter exit to exit the program
+			A) Easy
+			B) Hard
+	   """)
+
+	  WHILE choice != "A" OR choice != "B" or CHOICE != "EXIT"
+	  	OUTPUT "Please choose and option:"
+	  	choice <-- USERINPUT
+	  	choice <-- UPPER(choice)
+	  	IF choice = "A" THEN
+	  		#Run the run function with the parameter 9 (the total number of words needed)
+	  		run(9)
+	  	ELSEIF choice = "B" THEN
+	  		#Run the run function with the parameter 16 (the total number of words needed)
+	  		run(16)
+	  	ELSEIF choice = "EXIT" THEN
+	  		EXIT
+	  	ELSE
+	  		OUTPUT choice " is not recognized"
+	  		OUTPUT "Please try again"
+	  		choice <-- "NULL"
+	  	ENDIF
+	  ENDWHILE
+ENDFUNCTION
+
+#Define read words function
+FUNCTION readwords(level)
+	#Set the path to the square root of the level + x = square root of the level + .txt. E.g. 3x3.txt
+	path <-- STR(INT(SQRT(level))) + "x" +  STR(INT(SQRT(level))) + ".txt"
+	#Set words to empty array to put the words in
+	words <-- []
+	TRY
+		#Opening file using with
+		WITH f <-- READFILE(path)
+			#Adding each word to the array words - using python inbuilt function readfile
+			words <-- words + READLINES(f)
+		#For each element of the array strip it from \n using
+		
+		FOR i<--1 TO LENGTH(words)
+			words[i] = STRIP(words[i])
+		RETURN words
+	EXCEPT
+		OUTPUT "I'm sorry there has been an error"
+ENDFUNCTION
+
+#Define checkifused function
+FUNCTION checkifused(numsused, newnum)
+	#If the array numsused is empty
+	IF NOT numsused THEN
+		RETURN True
+	ENDIF
+	#If newnum is in array
+	FOR i<--1 TO LENGTH(numsused)
+		IF newnum = numsused[i] THEN
+			RETURN False
+	ENDFOR
+	#If the newnum isn't in the array
+		RETURN True
+ENDFUNCTION
+
+#Define the grabwords function
+FUNCTION grabwords(words, level)
+	#Define the arryas toprint and numsused
+	toprint <-- []
+	numsused <-- []
+	#For every number between 0 and the level (total words needed)
+	FOR i<--1 TO level
+		newnums <-- True
+		WHILE newnum = True
+			#Set x to a random number between 0 and the level
+			x <-- RANDOM NUMBER BETWEEN 0 AND LENGTH(words)
+			notused <-- checkifused(numsused, x)
+			#Check If the number has been used
+			IF notused = True THEN
+			#Append x onto the end of the array
+				numsused[LENGTH(numsused) <-- x
+				newnum <-- False
+			ELSE
+				newnum <-- True
+	ENDFOR
+	#For every number in numsused add the equivelent words to the array to print
+	FOR i<--1 TO LENGTH(numsused)
+		toprint[LENGTH(toprint)] <-- words[numsused[i]]
+	ENDFOR
+
+	#Find a random number between 0 and the total elements in the array nums used
+	toremove <-- RANDOM NUMBER BETWEEN 0 AND LENGTH(numsused)
+
+	#For each number between 0 and the level
+	FOR i<--1 TO LENGTH(level)
+		#If it is in the array pass
+		IF i in numsused THEN
+			PASS
+		#Else set the variable toadd to the word that isn't getting printed
+		ELSE
+			toadd <-- words[i]
+	ENDIF
+
+	#Return the array to print and the variables toremove and toadd
+	RETURN toprint, toremove, toadd
+ENDFUNCTION
+
+#Define the print grid function
+FUNCTION printgrid(toprint, level)
+	#Set the variable count to 0
+	count <-- 0
+	FOR i<--1 TO toprint
+		#If count is devisible by the sqaure root of the level print a new line
+		IF count % SQRT(level) = 0 THEN
+			OUTPUT "\n"
+		ENDIF
+		OUTPUT toprint[i]
+		OUTPUT "   |    "
+		count <-- count + 1
+	ENDFOR
+	OUTPUT "\n"
+	RETURN
+ENDFUNCTION
+
+#Define the run function
+FUNCTION run(level)
+	#Read the words from the file
+	words <-- readwords(level)
+	#Find the words to print
+	finalwords, toremove, toadd <-- grabwords(words, level)	
+	#Print the first grid
+	printgrid(finalwords, level)	
+	#If hard level sleep for 1 min
+	IF level = 16 THEN
+		SLEEP(60)
+	ELSE
+		#If on easy level sleep for 30 seconds
+		SLEEP(30)
+	ENDIF
+	#Clear the screen
+	OUTPUT chr(27) + "[2J"
+	#Set the variable removed to the word to remove
+	removed <-- finalwords[toremove]
+	#Replace the word that is to be removed
+	finalwords[toremove] <-- toadd
+	#Shuffle the array
+	SHUFFLE(finalwords)
+	#Print the second grid
+	printgrid(finalwords, level)
+	#Ask the questions
+	askquestions(removed, toadd, level)
+ENDFUNCTION
+
+#Define the askquestions functions
+FUNCTION askquestions(removed, added, level)
+	#Define the variables wrong and attempt
+	wrong <-- True
+	attempt <-- 0
+	#Start a while loop for while they don't have the right answer
+	WHILE wrong = True
+		#Ask the user to enter the word that was removed
+		OUTPUT "What word was removed?"
+		askremoved <-- USERINPUT
+		#Check if it is the right word
+		IF UPPER(askremoved) = removed THEN
+			OUTPUT "You got it right!"
+			#Exit the while loop
+			wrong <-- False
+		ELSE
+			#Add 1 to the number of attempts
+			attempt <-- attempt + 1
+			#If they have had 3 attempts restart the game
+			IF attempt = 3 THEN
+				OUTPUT "You Lost!"
+				menu()
+			ELSE
+				#Ask them to try again
+				OUTPUT "Try Again"
+				wrong <-- True
+			ENDIF
+		ENDIF
+	ENDWHILE
+
+	wrong <-- True
+	#Start a while loop for while they don't have the right answer
+	WHILE wrong = True
+		#Ask the user to enter the word that was added
+		OUTPUT "What word was added?"
+		askremoved <-- USERINPUT
+		#Check if the word is right
+		IF UPPER(askremoved) = added THEN
+			OUTPUT "You got both right!"
+			wrong <-- False
+			asking <-- True
+			#While they haven't entered an option
+			WHILE asking = True
+				#Ask them if they would like to play again
+				OUTPUT "Play again? [Yes/No]"
+				playagain <-- USERINPUT
+				#Check what option they chose
+				IF UPPER(playagain) = "YES" THEN
+					asking <-- False
+					#Run the game again
+					run(level)
+				ELSEIF UPPER(playagain) = "NO" THEN
+					asking <-- False
+					#Exit the game
+					exit()
+				ELSE
+					OUTPUT "Please try again"
+					asking <-- True
+				ENDIF
+		ELSE
+			#Add one to the number of attemptsf
+			attempt <-- attempt + 1
+			IF attempt = 3 THEN
+				OUTPUT "You Lost!"
+				menu()
+			ELSE
+				OUTPUT "Try Again"
+				wrong <-- True
+			ENDIF
+		ENDIF
+	ENDWHILE
+ENDFUNCTION
+menu()

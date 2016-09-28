@@ -1,0 +1,186 @@
+#Import Modules
+import random
+import time
+import math
+
+#Define Menu
+def menu():
+	choice = "NULL"
+	print("""Main Menu
+Please choose a difficulty level
+Enter exit to exit the program
+A) Easy
+B) Hard
+""")
+
+	while choice != "A" or choice != "B" or choice != "EXIT":
+		choice = input("Please choose an option: ")
+		choice = choice.upper()
+		if choice == "A":
+			#Run the run function with the parameter 9 (the total number of words needed)
+			run(9)
+		elif choice == "B":
+			#Run the run function with the parameter 16 (the total number of words needed)
+			run(16)	
+		elif choice == "EXIT":
+			exit()
+		else:
+			print (choice, "is not recongised")
+			print ("Please try again")
+			choice = "NULL"
+
+#Define read words function
+def readwords(level):
+	#Set the path to the square root of the level + x = square root of the level + .txt. E.g. 3x3.txt
+	path = str(int(math.sqrt(level))) +  "x" + str(int(math.sqrt(level))) + ".txt"
+	#Set words to empty array to put the words in
+	words = []
+	try:
+		#Opening file using with
+		with open(path) as f:
+			#Adding each word to the array words
+			words += f.readlines()
+		#For each element of the array strip it from \n
+		for i in range(0,len(words)):
+			words[i] = words[i].rstrip()
+		return words
+	except:
+		print("Im sorry there has been an error")
+
+
+#Define checkifused function
+def checkifused(numsused, newnum):
+	#If the array numsused is empty
+	if not numsused:
+		return True
+	#If newnum is in array
+	try:
+		numsused.index(newnum)
+		return False
+	#If the newnum isn;t in the array
+	except:
+		return True
+
+#Define the grabwords function
+def grabwords(words, level):
+	#Define the arryas toprint and numsused
+	toprint = []
+	numsused = []
+	#For every number between 0 and the level (total words needed)
+	for i in range(0, level):
+		newnum = True
+		while newnum == True:
+			#Set x to a random number between 0 and the level
+			x = random.randrange(0, len(words))
+			#Check If the number has been used
+			if checkifused(numsused, x) == True:
+				#Append x onto the end of the array
+				numsused.append(x)
+				newnum = False
+			else:	
+				newnum = True
+	#For every number in numsused add the equivelent words to the array to print
+	for i in numsused:
+		toprint.append(words[i])
+
+	#Find a random number between 0 and the total elements in the array nums used
+	toremove = random.randrange(0, len(numsused))
+
+	#For each number between 0 and the level
+	for i in range(0, level):
+		#If it is in the array pass
+		if i in numsused:
+			pass
+		#Else set the variable toadd to the word that isn't getting printed
+		else:
+			toadd = words[i]
+	#Return the array to print and the variables toremove and toadd
+	return toprint, toremove, toadd
+
+#Define the print grid function
+def printgrid(toprint, level):
+	#Set the variable count to o0
+	count = 0
+	#For every word in the array to print
+	for i in toprint:
+		#If count is devisible by the sqaure root of the level print a new line
+		if count % (math.sqrt(level)) == 0:
+			print("\n", end="")
+		print(i, end="")
+		print("   |    ", end="")
+		count += 1
+	print("\n")
+	return
+
+#Define the run function
+def run(level):
+	#Read the words from the file
+	words = readwords(level)
+	#Find the words to print
+	finalwords, toremove, toadd = grabwords(words, level)
+	#Print the first grid
+	printgrid(finalwords, level)
+	#Sleep for 30 seconds
+	time.sleep(30)
+	#Clear the screen
+	print(chr(27) + "[2J")
+	#Set the variable removed to the word to remove
+	removed = finalwords[toremove]
+	#Replace the word that is to be removed
+	finalwords[toremove] = toadd
+	#Shuffle the array
+	random.shuffle(finalwords)
+	#Print the second grid
+	printgrid(finalwords, level)
+	#Ask the questions
+	askquestions(removed, toadd, level)
+
+#Define the askquestions function
+def askquestions(removed, added, level):
+	#Define the variables wrong and attempt
+	wrong = True
+	attempt = 0
+	while wrong == True:
+			askremoved = input("What word was removed?")
+			if askremoved.upper() == removed:
+				print("You got it right!")
+				wrong = False
+			else:
+				attempt += 1
+				#If they have had 3 attempts restart the game
+				if attempt == 3:
+					print("You Lost!")
+					menu()
+				else:
+					print("Try again")
+					wrong = True
+
+	wrong = True
+	while wrong == True:
+			askadded = input("What word was added?")
+			if askadded.upper() == added:
+				print("You got both right!")
+				wrong = False
+				asking = True
+				while asking == True:
+					playagain = input("Play again? [Yes/No]")
+					if playagain.upper() == "YES":
+						asking = False
+						run(level)
+					elif playagain.upper() == "NO":
+						asking = False
+						exit()
+					else: 
+						print("Please try again")
+						asking = True
+			else:
+				attempt += 1
+				if attempt == 3:
+					print("You Lost!")
+					menu()
+				else:
+					print("Try again")
+					wrong = True
+
+
+menu()
